@@ -1,24 +1,29 @@
 name: Build APK
-on: [push, workflow_dispatch]
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
 jobs:
   build:
     runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-java@v4
-      with:
-        distribution: temurin
-        java-version: 17
-    - uses: android-actions/setup-android@v3
-    - run: |
-        yes | sdkmanager --licenses
-        sdkmanager "platforms;android-33" "build-tools;33.0.2"
-        curl -s https://get.sdkman.io | bash
-        source ~/.sdkman/bin/sdkman-init.sh
-        sdk install gradle 8.2
-        gradle init --type basic
-        echo "APK build placeholder (Android Studio에서 열어 빌드)"
-    - uses: actions/upload-artifact@v4
-      with:
-        name: apk
-        path: .
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Grant gradlew permission
+        run: chmod +x ./gradlew || true
+
+      - name: Build debug APK
+        run: ./gradlew assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: apk
+          path: app/build/outputs/apk/debug/*.apk
